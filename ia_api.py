@@ -1,24 +1,51 @@
 import requests
-import json
 
-def comunicar_gemini(mensagem):
-    api_key = "SUA_CHAVE_AQUI"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    
-    headers = {'Content-Type': 'application/json'}
+API_KEY = open("segredos/api_key.txt").read().strip()
+
+MODEL = "gemini-1.5-flash"
+
+URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={API_KEY}"
+
+
+def perguntar(msg):
+
     payload = {
-        "contents": [{
-            "parts": [{"text": mensagem}]
-        }]
+        "contents":[
+            {
+                "parts":[
+                    {"text":msg}
+                ]
+            }
+        ]
     }
 
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-    
-    if response.status_code == 200:
-        return response.json()['candidates'][0]['content']['parts'][0]['text']
-    else:
-        return f"Erro: {response.status_code} - {response.text}"
+    try:
 
-if __name__ == "__main__":
-    texto = input("Digite a mensagem: ")
-    print(comunicar_gemini(texto))
+        r = requests.post(URL, json=payload, timeout=30)
+
+        if r.status_code != 200:
+            print("Erro API:")
+            print(r.text)
+            return
+
+        data = r.json()
+
+        resposta = data["candidates"][0]["content"]["parts"][0]["text"]
+
+        print("\nIA:", resposta)
+
+    except Exception as e:
+        print("Erro:", e)
+
+
+print("🤖 Gemini Terminal")
+print("Digite sair para encerrar\n")
+
+while True:
+
+    pergunta = input("Você: ")
+
+    if pergunta.lower() == "sair":
+        break
+
+    perguntar(pergunta)
