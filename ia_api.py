@@ -1,18 +1,24 @@
 import requests
+import json
 
-def enviar_mensagem(texto):
-    url = "http://localhost:5000/api/ia"
-    dados = {"mensagem": texto}
+def comunicar_gemini(mensagem):
+    api_key = "SUA_CHAVE_AQUI"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     
-    try:
-        response = requests.post(url, json=dados)
-        if response.status_code == 200:
-            print(f"Resposta da IA: {response.json()['resposta']}")
-        else:
-            print("Erro na comunicação.")
-    except Exception as e:
-        print(f"Falha ao conectar: {e}")
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{
+            "parts": [{"text": mensagem}]
+        }]
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    
+    if response.status_code == 200:
+        return response.json()['candidates'][0]['content']['parts'][0]['text']
+    else:
+        return f"Erro: {response.status_code} - {response.text}"
 
 if __name__ == "__main__":
-    msg = input("Digite sua mensagem para a IA: ")
-    enviar_mensagem(msg)
+    texto = input("Digite a mensagem: ")
+    print(comunicar_gemini(texto))
